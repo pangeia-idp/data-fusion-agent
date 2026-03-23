@@ -28,9 +28,6 @@ big_locations = [
 big_locations.sort(key=lambda x: -len(x[1]))
 print(f"✅ {len(big_locations)} locais com {MIN_IMAGENS}+ imagens encontrados")
 
-# ================================
-# LER TODOS OS PDFs DA PASTA SOURCE
-# ================================
 def carregar_todos_pdfs() -> str:
     if not PDFS_DIR.exists():
         print("  ⚠️ Pasta 'source' não encontrada")
@@ -56,9 +53,6 @@ def carregar_todos_pdfs() -> str:
     print(f"  ✅ {len(pdfs)} PDFs carregados")
     return texto_total[:20000]
 
-# ================================
-# CONTEXTO GEOGRÁFICO (OpenStreetMap)
-# ================================
 def buscar_contexto_geo(lat: float, lon: float) -> str:
     try:
         url = f"https://nominatim.openstreetmap.org/reverse?lat={lat}&lon={lon}&format=json"
@@ -75,9 +69,6 @@ def buscar_contexto_geo(lat: float, lon: float) -> str:
     except Exception:
         return ""
 
-# ================================
-# CONTEXTO WIKIPEDIA
-# ================================
 def buscar_wikipedia(lat: float, lon: float) -> str:
     try:
         params = {
@@ -108,9 +99,6 @@ def buscar_wikipedia(lat: float, lon: float) -> str:
     except Exception:
         return ""
 
-# ================================
-# ANÁLISE TÉCNICA DOS METADADOS
-# ================================
 def analisar_metadados_tecnicos(grupo: pd.DataFrame) -> dict:
     return {
         "total_imagens": len(grupo),
@@ -126,9 +114,6 @@ def analisar_metadados_tecnicos(grupo: pd.DataFrame) -> dict:
         "imagens_por_mes": round(len(grupo) / max((grupo['datetime'].max() - grupo['datetime'].min()).days / 30, 1), 1),
     }
 
-# ================================
-# ANÁLISE PRINCIPAL COM BEDROCK
-# ================================
 def analisar_com_bedrock(grupo: pd.DataFrame, lat: float, lon: float, contexto_pdfs: str) -> str:
     bedrock = boto3.client("bedrock-runtime", region_name="us-east-1")
 
@@ -197,9 +182,6 @@ Com base em TODOS os contextos acima (geográfico, enciclopédico, científico e
     )
     return json.loads(response["body"].read())["content"][0]["text"]
 
-# ================================
-# CORRELAÇÃO GLOBAL
-# ================================
 def correlacionar_regioes(historias: list) -> str:
     bedrock = boto3.client("bedrock-runtime", region_name="us-east-1")
 
@@ -234,15 +216,9 @@ Faça uma análise de correlação global respondendo:
     )
     return json.loads(response["body"].read())["content"][0]["text"]
 
-# ================================
-# CARREGAR PDFs UMA VEZ SÓ
-# ================================
 print("\n📚 Carregando PDFs da pasta source/...")
 contexto_pdfs = carregar_todos_pdfs()
 
-# ================================
-# PROCESSAR TODOS OS LOCAIS
-# ================================
 historias = []
 
 for i, ((lat, lon), grupo) in enumerate(big_locations[:MAX_LOCAIS]):
@@ -270,9 +246,6 @@ print("\n🔗 Correlacionando todas as regiões...")
 correlacao = correlacionar_regioes(historias)
 print("✅ Correlação concluída!")
 
-# ================================
-# GERAR RELATÓRIO MARKDOWN
-# ================================
 print(f"\n📄 Gerando relatório com {len(historias)} histórias...")
 
 output_path = OUTPUT_DIR / "historias.md"
